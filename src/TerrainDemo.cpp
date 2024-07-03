@@ -38,7 +38,7 @@ void TerrainDemo::CreateWindow() {
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-    m_window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
+    m_window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "TerrainRendering", NULL, NULL);
     if (m_window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -54,6 +54,7 @@ void TerrainDemo::CreateWindow() {
     }
 
     glEnable(GL_DEPTH_TEST);
+    glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 }
 
 void TerrainDemo::InitTerrain() {

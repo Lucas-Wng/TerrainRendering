@@ -32,12 +32,14 @@ private:
     HeightMap* m_HeightMap;
     unsigned int m_VAO = 0;
     unsigned int m_VBO = 0;
+    unsigned int m_EBO = 0;
 
 
     void PopulateBuffer();
     void InitVertices(std::vector<Vertex>& Vertices);
     void InitGLStates();
     void InitHeightMap();
+    void InitIndices(std::vector<unsigned int>& Indices);
 };
 
 
