@@ -58,7 +58,7 @@ void TerrainDemo::CreateWindow() {
 }
 
 void TerrainDemo::InitTerrain() {
-    m_terrain = new Terrain();
+    m_terrain = new Terrain(256, 256, true);
     m_terrain->Generate();
 }
 

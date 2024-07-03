@@ -19,7 +19,7 @@ void HeightMap::LoadFileHeightMap(const std::string &filename) {
 
     // Convert the pixel values to floats in the range [0, 1]
     for (int i = 0; i < m_width * m_height; ++i) {
-        m_data[i] = img[i] / 255.0f;
+        m_data[i] = img[i] / 255.0;
     }
 
     stbi_image_free(img);
@@ -36,9 +36,9 @@ int HeightMap::getMWidth() const {
 void HeightMap::setMWidth(int mWidth) {
     m_width = mWidth;
 }
-const std::vector<float> &HeightMap::getMData() const {
+const std::vector<double> &HeightMap::getMData() const {
     return m_data;
 }
-void HeightMap::setMData(const std::vector<float> &mData) {
+void HeightMap::setMData(const std::vector<double> &mData) {
     m_data = mData;
 }

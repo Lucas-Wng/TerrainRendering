@@ -11,11 +11,12 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <vector>
+#include "PerlinNoise.h"
 
 
 class Terrain {
 public:
-    Terrain();
+    Terrain(int width, int depth, bool perlinNoise = false);
     ~Terrain();
 
     void Render();
@@ -24,12 +25,13 @@ private:
     struct Vertex {
         glm::vec3 Pos;
 
-        void InitVertex(float x, float y, float z);
+        void InitVertex(double x, double y, double z);
     };
 
+    bool m_perlinNoise = false;
     int m_width;
     int m_depth;
-    HeightMap* m_HeightMap;
+    std::vector<double> m_heightmap;
     unsigned int m_VAO = 0;
     unsigned int m_VBO = 0;
     unsigned int m_EBO = 0;

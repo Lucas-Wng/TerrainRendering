@@ -5,8 +5,10 @@
 #include "terrain.h"
 #include <iostream>
 
-Terrain::Terrain() {
-
+Terrain::Terrain(int width, int depth, bool perlinNoise) {
+    m_width = width;
+    m_depth = depth;
+    m_perlinNoise = perlinNoise;
 }
 
 void Terrain::Generate() {
@@ -55,14 +57,14 @@ void Terrain::InitVertices(std::vector<Vertex>& Vertices) {
     int index = 0;
     for (int z = 0; z < m_depth; z++) {
         for (int x = 0; x < m_width; x++) {
-            float height = m_HeightMap->getMData()[index];
-            Vertices[index].InitVertex(x/50.0f, height * 2.0f, z/50.0f);
+            double height = m_heightmap[index];
+            Vertices[index].InitVertex(x/50.0, height * 2.0, z/50.0);
             index++;
         }
     }
 }
 
-void Terrain::Vertex::InitVertex(float x, float y, float z) {
+void Terrain::Vertex::InitVertex(double x, double y, double z) {
     Pos = glm::vec3(x, y, z);
 }
 
@@ -74,10 +76,19 @@ void Terrain::Render() {
 }
 
 void Terrain::InitHeightMap() {
-    m_HeightMap = new HeightMap();
-    m_HeightMap->LoadFileHeightMap("resources/heightmaps/iceland_heightmap.png");
-    m_width = m_HeightMap->getMWidth();
-    m_depth = m_HeightMap->getMHeight();
+    if (m_perlinNoise) {
+        PerlinNoise PerlinNoise(m_width, m_depth);
+        PerlinNoise.GenerateHeightMap();
+        m_heightmap = PerlinNoise.GetHeightMap();
+    }
+    else {
+        HeightMap HeightMap;
+        HeightMap.LoadFileHeightMap("resources/heightmaps/iceland_heightmap.png");
+        m_width = HeightMap.getMWidth();
+        m_depth = HeightMap.getMHeight();
+        m_heightmap = HeightMap.getMData();
+    }
+
 }
 void Terrain::InitIndices(std::vector<unsigned int>& Indices) {
     for (int z = 0; z < m_depth - 1; z++) {

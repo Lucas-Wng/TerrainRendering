@@ -22,11 +22,11 @@ public:
     void setMHeight(int mHeight);
     int getMWidth() const;
     void setMWidth(int mWidth);
-    const std::vector<float> &getMData() const;
-    void setMData(const std::vector<float> &mData);
+    const std::vector<double> &getMData() const;
+    void setMData(const std::vector<double> &mData);
 
 private:
-    std::vector<float> m_data;
+    std::vector<double> m_data;
 };
 
 
