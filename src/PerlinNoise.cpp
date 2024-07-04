@@ -9,36 +9,44 @@ PerlinNoise::PerlinNoise(int width, int depth) {
     m_depth = depth;
 }
 
-// Gradient function for integer coordinates
-double grad(int hash, int x, int y) {
+// Fade function to smooth the interpolation
+double fade(double t) {
+    return t * t * t * (t * (t * 6 - 15) + 10);
+}
+
+// Linear interpolation
+double lerp(double t, double a, double b) {
+    return a + t * (b - a);
+}
+
+// Gradient function
+double grad(int hash, double x, double y) {
     int h = hash & 7;      // Convert low 3 bits of hash code
-    int u = h < 4 ? x : y; // into 8 simple gradient directions,
-    int v = h < 4 ? y : x; // and compute the dot product.
+    double u = h < 4 ? x : y; // into 8 simple gradient directions,
+    double v = h < 4 ? y : x; // and compute the dot product.
     return ((h & 1) == 0 ? u : -u) + ((h & 2) == 0 ? v : -v);
 }
 
-// Perlin noise function for integer coordinates
-double perlin(int x, int y, const std::vector<int> &p) {
-    int X = x & 255;
-    int Y = y & 255;
+// Perlin noise function
+double perlin(double x, double y, const std::vector<int> &p) {
+    int X = (int)floor(x) & 255;
+    int Y = (int)floor(y) & 255;
+    x -= floor(x);
+    y -= floor(y);
+    double u = fade(x);
+    double v = fade(y);
     int A = p[X] + Y;
     int AA = p[A];
     int AB = p[A + 1];
     int B = p[X + 1] + Y;
     int BA = p[B];
     int BB = p[B + 1];
-
-    double dot1 = grad(p[AA], x, y);
-    double dot2 = grad(p[BA], x - 1, y);
-    double dot3 = grad(p[AB], x, y - 1);
-    double dot4 = grad(p[BB], x - 1, y - 1);
-
-    // Averaging the dot products to get a smooth result
-    return (dot1 + dot2 + dot3 + dot4) / 4.0;
+    return lerp(v, lerp(u, grad(p[AA], x, y), grad(p[BA], x - 1, y)),
+                lerp(u, grad(p[AB], x, y - 1), grad(p[BB], x - 1, y - 1)));
 }
 
 // Fractal Brownian Motion (fBM) to combine multiple octaves of Perlin noise
-double fbm(int x, int y, const std::vector<int> &p, int octaves, double persistence, double lacunarity) {
+double fbm(double x, double y, const std::vector<int> &p, int octaves, double persistence, double lacunarity) {
     double total = 0.0;
     double frequency = 1.0;
     double amplitude = 1.0;
@@ -56,7 +64,7 @@ double fbm(int x, int y, const std::vector<int> &p, int octaves, double persiste
     return total / maxValue;
 }
 
-double ridgedPerlin(int x, int y, const std::vector<int> &p, int octaves, double persistence, double lacunarity) {
+double ridgedPerlin(double x, double y, const std::vector<int> &p, int octaves, double persistence, double lacunarity) {
     double total = 0.0;
     double frequency = 1.0;
     double amplitude = 1.0;
@@ -77,7 +85,7 @@ double ridgedPerlin(int x, int y, const std::vector<int> &p, int octaves, double
     return total / maxValue;
 }
 
-double domainWarp(int x, int y, const std::vector<int> &p, double warpFactor) {
+double domainWarp(double x, double y, const std::vector<int> &p, double warpFactor) {
     double warpX = perlin(x * warpFactor, y * warpFactor, p);
     double warpY = perlin((x + 5) * warpFactor, (y + 5) * warpFactor, p);
     return perlin(x + warpX, y + warpY, p);
@@ -97,7 +105,7 @@ void hydraulicErosion(std::vector<double> &heightmap, int length, int iterations
 }
 
 void applyGaussianBlur(std::vector<double> &heightmap, int length, double sigma) {
-    int kernelRadius = (int)ceil(2 * sigma);
+    int kernelRadius = static_cast<int>(ceil(2 * sigma));
     int kernelSize = 2 * kernelRadius + 1;
     std::vector<double> kernel(kernelSize);
 
@@ -132,7 +140,6 @@ double terrace(double value, int steps) {
     return floor(value / stepSize) * stepSize;
 }
 
-
 void PerlinNoise::GenerateHeightMap() {
     std::vector<int> p(512);
     std::vector<int> permutation = { 151,160,137,91,90,15,39,
@@ -142,16 +149,16 @@ void PerlinNoise::GenerateHeightMap() {
         p[256 + i] = p[i] = permutation[i];
 
     // Parameters for fBM
-    int octaves = 6; // Number of octaves
-    double persistence = 0.5; // Amplitude factor
-    double lacunarity = 2.0; // Frequency factor
-
-    // Generate noise value at integer coordinates (x, y) using fBM
+    int octaves = 5; // Number of octaves
+    double persistence = 1.0; // Amplitude factor
+    double lacunarity = 2.2; // Frequency factor
+    double warpFactor = 0.05;
+    double inputScale = 0.004;
 
     for (int z = 0; z < m_depth; z++) {
         for (int x = 0; x < m_width; x++) {
-            double noiseValue = ridgedPerlin(x, z, p, octaves, persistence, lacunarity);
-            noiseValue = domainWarp(x, z, p, 0.1) * 0.5 + noiseValue * 0.5; // Example of domain warping
+            double noiseValue = ridgedPerlin(x * inputScale, z * inputScale, p, octaves, persistence, lacunarity);
+            noiseValue = domainWarp(x * inputScale, z * inputScale, p, warpFactor) * 0.3 + noiseValue * 0.7; // Example of domain warping
             noiseValue = terrace(noiseValue, 10); // Example of terracing
             std::cout << noiseValue << std::endl;
             m_data.push_back(noiseValue);
@@ -162,7 +169,7 @@ void PerlinNoise::GenerateHeightMap() {
     hydraulicErosion(m_data, m_width * m_depth, 1000);
 
     // Apply Gaussian blur to smooth the heightmap
-    applyGaussianBlur(m_data, m_width * m_depth, 1.0);
+    applyGaussianBlur(m_data, m_width * m_depth, 2.0);
 }
 
 std::vector<double> PerlinNoise::GetHeightMap() {

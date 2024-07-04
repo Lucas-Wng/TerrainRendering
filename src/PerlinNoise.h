@@ -19,10 +19,6 @@ public:
     std::vector<double> GetHeightMap();
 
 private:
-    float Interpolate();
-
-
-private:
     std::vector<double> m_data;
     int m_width;
     int m_depth;
