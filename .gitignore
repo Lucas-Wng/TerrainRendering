@@ -3,6 +3,7 @@
 *.ipr
 *.iws
 .idea/
+.clang-format
 
 # CMake generated files
 CMakeFiles/
