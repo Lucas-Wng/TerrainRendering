@@ -1,3 +1,0 @@
-/Users/lucaswang/CLionProjects/TerrainRendering/cmake-build-debug/CMakeFiles/TerrainRendering.dir
-/Users/lucaswang/CLionProjects/TerrainRendering/cmake-build-debug/CMakeFiles/edit_cache.dir
-/Users/lucaswang/CLionProjects/TerrainRendering/cmake-build-debug/CMakeFiles/rebuild_cache.dir
