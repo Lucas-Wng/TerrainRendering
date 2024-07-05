@@ -1,7 +1,22 @@
 #version 330 core
-layout (location = 0) out vec4 FragColor;
+
+in vec3 FragPos;
+in vec3 Normal;
+in float Height;
+
+out vec4 FragColor;
+
+uniform vec3 lightPos;
+uniform vec3 lightColor;
+uniform vec3 objectColor;
 
 void main()
 {
-    FragColor = vec4(1.0);
+    vec3 norm = normalize(Normal);
+    vec3 lightDir = normalize(lightPos - FragPos);
+    float diff = max(dot(norm, lightDir), 0.0);
+    vec3 diffuse = diff * lightColor;
+
+    vec3 result = (diffuse * 1.5 + (Height - 0.2) * 2.0) * objectColor;
+    FragColor = vec4(result, 1.0);
 }

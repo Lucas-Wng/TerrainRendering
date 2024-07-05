@@ -54,11 +54,11 @@ void TerrainDemo::CreateWindow() {
     }
 
     glEnable(GL_DEPTH_TEST);
-    glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+    //glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 }
 
 void TerrainDemo::InitTerrain() {
-    m_terrain = new Terrain(256, 256, true);
+    m_terrain = new Terrain(256, 256, false);
     m_terrain->Generate();
 }
 
@@ -75,7 +75,7 @@ void TerrainDemo::CreateShaders() {
 }
 
 void TerrainDemo::CreateCamera() {
-    m_camera = new Camera(glm::vec3(0.0f, 0.0f, 3.0f));
+    m_camera = new Camera(glm::vec3(3.0f, 5.0f, 3.0f));
 }
 
 void TerrainDemo::Run() {
@@ -95,7 +95,7 @@ void TerrainDemo::Run() {
 void TerrainDemo::Render() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    m_shader->use();
+    SetShaderUniforms();
 
     // view/projection transformations
     glm::mat4 projection = glm::perspective(glm::radians(m_camera->Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
@@ -184,4 +184,11 @@ void TerrainDemo::OnKeyPressed(GLFWwindow* window, int key, int scancode, int ac
     if (key == GLFW_KEY_LEFT_SHIFT) {
         m_camera->ProcessKeyboard(DOWN, m_deltaTime);
     }
+}
+
+void TerrainDemo::SetShaderUniforms() {
+    m_shader->use();
+    m_shader->setVec3("lightPos", glm::vec3(2.0f, 5.0f, 2.0f));
+    m_shader->setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
+    m_shader->setVec3("objectColor", glm::vec3(0.2f, 0.2f, 0.2f));
 }

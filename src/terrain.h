@@ -32,9 +32,11 @@ private:
     int m_width;
     int m_depth;
     std::vector<double> m_heightmap;
+    std::vector<glm::vec3> m_normals;
     unsigned int m_VAO = 0;
     unsigned int m_VBO = 0;
     unsigned int m_EBO = 0;
+    unsigned int m_normalsVBO = 0;
 
 
     void PopulateBuffer();
@@ -42,6 +44,7 @@ private:
     void InitGLStates();
     void InitHeightMap();
     void InitIndices(std::vector<unsigned int>& Indices);
+    void ComputeNormals();
 };
 
 

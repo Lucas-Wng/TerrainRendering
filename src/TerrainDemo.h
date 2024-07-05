@@ -47,6 +47,7 @@ private:
     void ProcessInput();
 
     void SetCallbacks();
+    void SetShaderUniforms();
 
     void InitTerrain();
     void Render();
