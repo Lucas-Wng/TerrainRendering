@@ -19,6 +19,7 @@ add_executable(TerrainRendering src/main.cpp
         src/HeightMap.h
         src/PerlinNoise.cpp
         src/PerlinNoise.h
+        src/texture.h
 )
 
 target_include_directories(TerrainRendering PRIVATE ${CMAKE_SOURCE_DIR}/include)

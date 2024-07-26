@@ -5,11 +5,20 @@
 #include "terrain.h"
 #include <iostream>
 
-Terrain::Terrain(int width, int depth, bool perlinNoise) {
-    m_width = width;
-    m_depth = depth;
-    m_perlinNoise = perlinNoise;
+Terrain::Terrain(int width, int depth, bool perlinNoise)
+    : m_width(width), m_depth(depth), m_perlinNoise(perlinNoise) {
+
+//    m_diffuseMap = new Texture("resources/textures/snow/snow_02_diff_4k.jpg", "diffuse");
+//    m_dispMap = new Texture("resources/textures/snow/snow_02_disp_4k.png", "displacement");
+//    m_normalMap = new Texture("resources/textures/snow/snow_02_nor_gl_4k.exr", "normal");
+//    m_roughMap = new Texture("resources/textures/snow/snow_02_rough_4k.jpg", "roughness");
+//    m_translucentMap = new Texture("resources/textures/snow/snow_02_translucent_4k.png", "translucent");
+        m_diffuseMap = new Texture("resources/textures/aerial_rocks/aerial_rocks_02_diff_4k.jpg", "diffuse");
+        m_dispMap = new Texture("resources/textures/aerial_rocks/aerial_rocks_02_disp_4k.png", "displacement");
+        m_normalMap = new Texture("resources/textures/aerial_rocks/aerial_rocks_02_nor_gl_4k.exr", "normal");
+        m_roughMap = new Texture("resources/textures/aerial_rocks/aerial_rocks_02_rough_4k.jpg", "roughness");
 }
+
 
 void Terrain::Generate() {
     InitGLStates();
@@ -36,6 +45,9 @@ void Terrain::InitGLStates() {
     glBindBuffer(GL_ARRAY_BUFFER, m_normalsVBO);
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
+
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexCoords));
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
 
@@ -68,21 +80,33 @@ void Terrain::InitVertices(std::vector<Vertex>& Vertices) {
     for (int z = 0; z < m_depth; z++) {
         for (int x = 0; x < m_width; x++) {
             double height = m_heightmap[index];
-            Vertices[index].InitVertex(x/50.0, height * 2.0, z/50.0);
+            float u = static_cast<float>(x) / m_width;
+            float v = static_cast<float>(z) / m_depth;
+            Vertices[index].InitVertex(x/50.0, height * 2.0, z/50.0, u, v);
             index++;
         }
     }
 }
 
-void Terrain::Vertex::InitVertex(double x, double y, double z) {
+void Terrain::Vertex::InitVertex(double x, double y, double z, double u, double v) {
     Pos = glm::vec3(x, y, z);
+    TexCoords = glm::vec2(u, v);
 }
 
 void Terrain::Render() {
+    glActiveTexture(GL_TEXTURE0);
+    m_diffuseMap->Bind();
+    glActiveTexture(GL_TEXTURE1);
+    m_dispMap->Bind();
+    glActiveTexture(GL_TEXTURE2);
+    m_normalMap->Bind();
+    glActiveTexture(GL_TEXTURE3);
+    m_roughMap->Bind();
+//    glActiveTexture(GL_TEXTURE4);
+//    m_translucentMap->Bind();
 
     glBindVertexArray(m_VAO);
     glDrawElements(GL_TRIANGLES, (m_width - 1) * (m_depth - 1) * 6, GL_UNSIGNED_INT, 0);
-    //glDrawArrays(GL_TRIANGLES, 0, m_width * m_depth);
     glBindVertexArray(0);
 }
 

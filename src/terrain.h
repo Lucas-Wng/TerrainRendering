@@ -12,6 +12,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <vector>
 #include "PerlinNoise.h"
+#include "texture.h"
 
 
 class Terrain {
@@ -24,8 +25,9 @@ public:
 private:
     struct Vertex {
         glm::vec3 Pos;
-
-        void InitVertex(double x, double y, double z);
+        glm::vec3 Normal;
+        glm::vec2 TexCoords;
+        void InitVertex(double x, double y, double z, double u, double v);
     };
 
     bool m_perlinNoise = false;
@@ -37,6 +39,12 @@ private:
     unsigned int m_VBO = 0;
     unsigned int m_EBO = 0;
     unsigned int m_normalsVBO = 0;
+
+    Texture* m_diffuseMap;
+    Texture* m_dispMap;
+    Texture* m_normalMap;
+    Texture* m_roughMap;
+    Texture* m_translucentMap;
 
 
     void PopulateBuffer();

@@ -58,7 +58,7 @@ void TerrainDemo::CreateWindow() {
 }
 
 void TerrainDemo::InitTerrain() {
-    m_terrain = new Terrain(256, 256, false);
+    m_terrain = new Terrain(256, 256, true);
     m_terrain->Generate();
 }
 
@@ -75,7 +75,7 @@ void TerrainDemo::CreateShaders() {
 }
 
 void TerrainDemo::CreateCamera() {
-    m_camera = new Camera(glm::vec3(3.0f, 5.0f, 3.0f));
+    m_camera = new Camera(glm::vec3(2.0f, 2.0f, 2.0f));
 }
 
 void TerrainDemo::Run() {
@@ -191,4 +191,10 @@ void TerrainDemo::SetShaderUniforms() {
     m_shader->setVec3("lightPos", glm::vec3(2.0f, 5.0f, 2.0f));
     m_shader->setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
     m_shader->setVec3("objectColor", glm::vec3(0.2f, 0.2f, 0.2f));
+
+    m_shader->setInt("diffuseMap", 0);
+    m_shader->setInt("dispMap", 1);
+    m_shader->setInt("normalMap", 2);
+    m_shader->setInt("roughMap", 3);
+//    m_shader->setInt("translucentMap", 4);
 }

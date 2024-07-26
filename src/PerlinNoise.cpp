@@ -3,6 +3,8 @@
 //
 
 #include "PerlinNoise.h"
+#include <random>
+#include <algorithm>
 
 PerlinNoise::PerlinNoise(int width, int depth) {
     m_width = width;
@@ -21,16 +23,16 @@ double lerp(double t, double a, double b) {
 
 // Gradient function
 double grad(int hash, double x, double y) {
-    int h = hash & 7;      // Convert low 3 bits of hash code
-    double u = h < 4 ? x : y; // into 8 simple gradient directions,
-    double v = h < 4 ? y : x; // and compute the dot product.
+    int h = hash & 7;        // Convert low 3 bits of hash code
+    double u = h < 4 ? x : y;// into 8 simple gradient directions,
+    double v = h < 4 ? y : x;// and compute the dot product.
     return ((h & 1) == 0 ? u : -u) + ((h & 2) == 0 ? v : -v);
 }
 
 // Perlin noise function
 double perlin(double x, double y, const std::vector<int> &p) {
-    int X = (int)floor(x) & 255;
-    int Y = (int)floor(y) & 255;
+    int X = (int) floor(x) & 255;
+    int Y = (int) floor(y) & 255;
     x -= floor(x);
     y -= floor(y);
     double u = fade(x);
@@ -50,7 +52,7 @@ double fbm(double x, double y, const std::vector<int> &p, int octaves, double pe
     double total = 0.0;
     double frequency = 1.0;
     double amplitude = 1.0;
-    double maxValue = 0.0;  // Used for normalizing result to [-1, 1]
+    double maxValue = 0.0;// Used for normalizing result to [-1, 1]
 
     for (int i = 0; i < octaves; ++i) {
         total += perlin(x * frequency, y * frequency, p) * amplitude;
@@ -140,17 +142,26 @@ double terrace(double value, int steps) {
     return floor(value / stepSize) * stepSize;
 }
 
-void PerlinNoise::GenerateHeightMap() {
+std::vector<int> PerlinNoise::generatePermutationVector(unsigned int seed) {
+    std::vector<int> permutation(256);
+    std::iota(permutation.begin(), permutation.end(), 0);
+    std::mt19937 rng(seed);
+    std::shuffle(permutation.begin(), permutation.end(), rng);
+
     std::vector<int> p(512);
-    std::vector<int> permutation = { 151,160,137,91,90,15,39,
-                                    131, 36, 8, 64, 52, 41, 105, 13, 25, 63, 161, 1, 57, 20, 16, 41, 51, 5,
-                                    47, 59, 87, 29, 0, 43, 98, 21, 19, 35, 62, 9, 11, 27, 71, 42, 39, 31, 54, 24, 68, 46, 73, 72, 7, 14, 37, 79, 75, 44, 69, 53, 92, 60, 50, 56, 48, 55, 38, 70, 78, 17, 12, 49, 32, 6, 22, 76, 33, 67, 77, 18, 34, 3, 88, 74, 85, 30, 2, 23, 58, 61, 40, 28, 26, 45, 65, 66, 10, 4, 99, 82, 80, 81, 83, 84, 86, 89, 100, 101, 102, 103, 104, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 132, 133, 134, 135, 136, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194, 195, 196, 197, 198, 199, 200, 201, 202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223, 224, 225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239, 240, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250, 251, 252, 253, 254, 255 };
-    for (int i = 0; i < 256 ; i++)
-        p[256 + i] = p[i] = permutation[i];
+    for (int i = 0; i < 256; ++i) {
+        p[i] = p[256 + i] = permutation[i];
+    }
+    return p;
+}
+
+void PerlinNoise::GenerateHeightMap() {
+    unsigned int seed = 0x1A2B3C4D;
+    std::vector<int> p = generatePermutationVector(seed);
 
     // Parameters for fBM
-    int octaves = 5; // Number of octaves
-    double persistence = 1.0; // Amplitude factor
+    int octaves = 5;         // Number of octaves
+    double persistence = 1.0;// Amplitude factor
     double lacunarity = 2.2; // Frequency factor
     double warpFactor = 0.05;
     double inputScale = 0.004;
@@ -158,9 +169,10 @@ void PerlinNoise::GenerateHeightMap() {
     for (int z = 0; z < m_depth; z++) {
         for (int x = 0; x < m_width; x++) {
             double noiseValue = ridgedPerlin(x * inputScale, z * inputScale, p, octaves, persistence, lacunarity);
-            noiseValue = domainWarp(x * inputScale, z * inputScale, p, warpFactor) * 0.3 + noiseValue * 0.7; // Example of domain warping
-            noiseValue = terrace(noiseValue, 10); // Example of terracing
-            std::cout << noiseValue << std::endl;
+            noiseValue = domainWarp(x * inputScale, z * inputScale, p, warpFactor) * 0.3 +
+                         noiseValue * 0.7;// Example of domain warping
+            noiseValue = terrace(noiseValue,
+                                 10);                                                           // Example of terracing
             m_data.push_back(noiseValue);
         }
     }

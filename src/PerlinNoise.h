@@ -17,6 +17,7 @@ public:
 
     void GenerateHeightMap();
     std::vector<double> GetHeightMap();
+    std::vector<int> generatePermutationVector(unsigned int seed);
 
 private:
     std::vector<double> m_data;
