@@ -13,15 +13,23 @@ add_executable(TerrainRendering src/main.cpp
         src/shader.h
         src/TerrainDemo.cpp
         src/TerrainDemo.h
-        include/stb_image.h
         src/stb_image.cpp
         src/HeightMap.cpp
         src/HeightMap.h
         src/PerlinNoise.cpp
         src/PerlinNoise.h
-        src/texture.h
+        src/TextureLoader.cpp
+        src/TextureLoader.h
+        include/imgui/imgui.cpp
+        include/imgui/imgui_draw.cpp
+        include/imgui/imgui_widgets.cpp
+        include/imgui/imgui_tables.cpp
+        include/imgui/backends/imgui_impl_glfw.cpp
+        include/imgui/backends/imgui_impl_opengl3.cpp
 )
 
 target_include_directories(TerrainRendering PRIVATE ${CMAKE_SOURCE_DIR}/include)
+target_include_directories(TerrainRendering PRIVATE ${CMAKE_SOURCE_DIR}/include/imgui)
+target_include_directories(TerrainRendering PRIVATE ${CMAKE_SOURCE_DIR}/include/imgui/backends)
 
 target_link_libraries(TerrainRendering PRIVATE OpenGL::GL glfw)

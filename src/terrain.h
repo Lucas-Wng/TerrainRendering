@@ -12,7 +12,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <vector>
 #include "PerlinNoise.h"
-#include "texture.h"
+#include "TextureLoader.h"
 
 
 class Terrain {
@@ -26,6 +26,7 @@ private:
     struct Vertex {
         glm::vec3 Pos;
         glm::vec3 Normal;
+        glm::vec3 Tangent;
         glm::vec2 TexCoords;
         void InitVertex(double x, double y, double z, double u, double v);
     };
@@ -38,21 +39,24 @@ private:
     unsigned int m_VAO = 0;
     unsigned int m_VBO = 0;
     unsigned int m_EBO = 0;
-    unsigned int m_normalsVBO = 0;
 
-    Texture* m_diffuseMap;
-    Texture* m_dispMap;
-    Texture* m_normalMap;
-    Texture* m_roughMap;
-    Texture* m_translucentMap;
-
+    unsigned int m_diffuseTexture;
+    unsigned int m_displacementTexture;
+    unsigned int m_normalTexture;
+    unsigned int m_roughTexture;
 
     void PopulateBuffer();
     void InitVertices(std::vector<Vertex>& Vertices);
     void InitGLStates();
     void InitHeightMap();
     void InitIndices(std::vector<unsigned int>& Indices);
-    void ComputeNormals();
+    void ComputeNormals(std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices);
+    void ComputeTangents(std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices);
+    void LoadTextures();
+    void UnbindBuffers();
+    void SetupVertexAttribs(GLuint buffer, GLuint index, GLint size, GLenum type, GLsizei stride, const void* pointer);
+    template <typename T>
+    void UploadBufferData(GLuint buffer, const T* data, GLsizeiptr size);
 };
 
 

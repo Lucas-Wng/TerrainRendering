@@ -52,6 +52,8 @@ private:
     void InitTerrain();
     void Render();
 
+    void InitImGui();
+
 };
 
 

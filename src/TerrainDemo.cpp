@@ -3,6 +3,9 @@
 //
 
 #include "TerrainDemo.h"
+#include "imgui/imgui.h"
+#include "imgui/backends/imgui_impl_glfw.h"
+#include "imgui/backends/imgui_impl_opengl3.h"
 
 static void ResizeCallback(GLFWwindow*, int, int);
 static void MouseMoveCallback(GLFWwindow*, double, double);
@@ -10,6 +13,9 @@ static void KeyPressedCallback(GLFWwindow*, int, int, int, int);
 
 const int SCR_WIDTH = 1920;
 const int SCR_HEIGHT = 1080;
+
+const int world_width = 256;
+const int world_depth = 256;
 
 TerrainDemo::TerrainDemo() {
     Init();
@@ -26,6 +32,7 @@ void TerrainDemo::Init() {
     CreateShaders();
     CreateCamera();
     InitTerrain();
+    InitImGui();
 }
 
 void TerrainDemo::CreateWindow() {
@@ -57,8 +64,16 @@ void TerrainDemo::CreateWindow() {
     //glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 }
 
+void TerrainDemo::InitImGui() {
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    ImGui_ImplGlfw_InitForOpenGL(m_window, true);
+    ImGui_ImplOpenGL3_Init("#version 330");
+}
+
 void TerrainDemo::InitTerrain() {
-    m_terrain = new Terrain(256, 256, true);
+    m_terrain = new Terrain(world_width, world_depth, true);
     m_terrain->Generate();
 }
 
@@ -89,11 +104,18 @@ void TerrainDemo::Run() {
         glfwSwapBuffers(m_window);
         glfwPollEvents();
     }
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
     glfwTerminate();
 }
 
 void TerrainDemo::Render() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
 
     SetShaderUniforms();
 
@@ -107,7 +129,17 @@ void TerrainDemo::Render() {
     glm::mat4 model = glm::mat4(1.0f);
     m_shader->setMat4("model", model);
 
+    m_shader->setVec3("lightPos", glm::vec3(sin(glfwGetTime() * 0.1) * world_width * 2, 5.0f, cos(glfwGetTime() * 0.1   ) *
+    world_width * 2));
+
     m_terrain->Render();
+
+    ImGui::Begin("ImGui Window");
+    ImGui::Text("Hello ImGui");
+    ImGui::End();
+
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
 void TerrainDemo::ProcessInput() { //make this only have the normal inputs
@@ -188,7 +220,7 @@ void TerrainDemo::OnKeyPressed(GLFWwindow* window, int key, int scancode, int ac
 
 void TerrainDemo::SetShaderUniforms() {
     m_shader->use();
-    m_shader->setVec3("lightPos", glm::vec3(2.0f, 5.0f, 2.0f));
+    m_shader->setVec3("lightPos", glm::vec3(0.0f, 0.0f, 0.0f));
     m_shader->setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
     m_shader->setVec3("objectColor", glm::vec3(0.2f, 0.2f, 0.2f));
 
