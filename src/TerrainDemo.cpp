@@ -90,7 +90,7 @@ void TerrainDemo::CreateShaders() {
 }
 
 void TerrainDemo::CreateCamera() {
-    m_camera = new Camera(glm::vec3(2.0f, 2.0f, 2.0f));
+    m_camera = new Camera(glm::vec3(2.0f, 4.0f, 2.0f));
 }
 
 void TerrainDemo::Run() {

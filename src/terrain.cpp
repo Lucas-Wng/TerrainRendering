@@ -12,6 +12,10 @@ Terrain::Terrain(int width, int depth, bool perlinNoise)
 }
 
 void Terrain::LoadTextures() {
+//    m_diffuseTexture = TextureLoader::LoadTexture("resources/textures/metal_grate_rusty/metal_grate_rusty_diff_4k.png",GL_TEXTURE0);
+//    m_displacementTexture = TextureLoader::LoadTexture("resources/textures/metal_grate_rusty/metal_grate_rusty_disp_4k.png", GL_TEXTURE1);
+//    m_normalTexture = TextureLoader::LoadTexture("resources/textures/metal_grate_rusty/metal_grate_rusty_nor_gl_4k.png", GL_TEXTURE2);
+//    m_roughTexture = TextureLoader::LoadTexture("resources/textures/metal_grate_rusty/metal_grate_rusty_rough_4k.png", GL_TEXTURE3);
     m_diffuseTexture = TextureLoader::LoadTexture("resources/textures/rock_face/rock_face_03_diff_4k.jpg", GL_TEXTURE0);
     m_displacementTexture = TextureLoader::LoadTexture("resources/textures/rock_face/rock_face_03_disp_4k.png", GL_TEXTURE1);
     m_normalTexture = TextureLoader::LoadTexture("resources/textures/rock_face/rock_face_03_nor_gl_4k.png", GL_TEXTURE2);
@@ -68,12 +72,13 @@ void Terrain::UploadBufferData(GLuint buffer, const T* data, GLsizeiptr size) {
 }
 
 void Terrain::InitVertices(std::vector<Vertex>& vertices) {
+    float scale = 100.0f;
     for (int z = 0, index = 0; z < m_depth; ++z) {
         for (int x = 0; x < m_width; ++x, ++index) {
             double height = m_heightmap[index];
-            float u = static_cast<float>(x) / m_width;
-            float v = static_cast<float>(z) / m_depth;
-            vertices[index].InitVertex(x / 50.0, height * 4, z / 50.0, u, v);
+            float u = static_cast<float>(x) / m_width * scale;
+            float v = static_cast<float>(z) / m_depth * scale;
+            vertices[index].InitVertex(x / 50.0, height * 6.0, z / 50.0, u, v);
         }
     }
 }

@@ -207,15 +207,96 @@ std::vector<int> PerlinNoise::generatePermutationVector(unsigned int seed) {
     return p;
 }
 
+// Gradients for 2D simplex noise
+static const int grad2[8][2] = {
+        {1,1}, {-1,1}, {1,-1}, {-1,-1},
+        {1,0}, {-1,0}, {0,1}, {0,-1}
+};
+
+// Skewing factors for 2D simplex noise
+const double F2 = 0.5 * (sqrt(3.0) - 1.0);
+const double G2 = (3.0 - sqrt(3.0)) / 6.0;
+
+int fastFloor(double x) {
+    return x > 0 ? (int)x : (int)x - 1;
+}
+
+double dot(const int* g, double x, double y) {
+    return g[0] * x + g[1] * y;
+}
+
+double simplexNoise(double x, double y, const std::vector<int> &perm) {
+    // Skew the input space to determine which simplex cell we're in
+    double s = (x + y) * F2; // Hairy factor for 2D
+    int i = fastFloor(x + s);
+    int j = fastFloor(y + s);
+
+    double t = (i + j) * G2;
+    double X0 = i - t; // Unskew the cell origin back to (x,y) space
+    double Y0 = j - t;
+    double x0 = x - X0; // The x,y distances from the cell origin
+    double y0 = y - Y0;
+
+    // For the 2D case, the simplex shape is an equilateral triangle.
+    int i1, j1; // Offsets for the second (middle) corner of simplex in (i,j) coordinates
+    if (x0 > y0) {
+        i1 = 1; j1 = 0;
+    } else {
+        i1 = 0; j1 = 1;
+    }
+
+    // A step of (1,0) in (i,j) means (1-c,-c) in (x,y), and (0,1) means (-c,1-c)
+    double x1 = x0 - i1 + G2; // Offsets for middle corner in (x,y) unskewed coordinates
+    double y1 = y0 - j1 + G2;
+    double x2 = x0 - 1.0 + 2.0 * G2; // Offsets for last corner in (x,y) unskewed coordinates
+    double y2 = y0 - 1.0 + 2.0 * G2;
+
+    // Work out the hashed gradient indices of the three simplex corners
+    int ii = i & 255;
+    int jj = j & 255;
+    int gi0 = perm[ii + perm[jj]] % 8;
+    int gi1 = perm[ii + i1 + perm[jj + j1]] % 8;
+    int gi2 = perm[ii + 1 + perm[jj + 1]] % 8;
+
+    // Calculate the contribution from the three corners
+    double t0 = 0.5 - x0 * x0 - y0 * y0;
+    double n0;
+    if (t0 < 0) n0 = 0.0;
+    else {
+        t0 *= t0;
+        n0 = t0 * t0 * dot(grad2[gi0], x0, y0);
+    }
+
+    double t1 = 0.5 - x1 * x1 - y1 * y1;
+    double n1;
+    if (t1 < 0) n1 = 0.0;
+    else {
+        t1 *= t1;
+        n1 = t1 * t1 * dot(grad2[gi1], x1, y1);
+    }
+
+    double t2 = 0.5 - x2 * x2 - y2 * y2;
+    double n2;
+    if (t2 < 0) n2 = 0.0;
+    else {
+        t2 *= t2;
+        n2 = t2 * t2 * dot(grad2[gi2], x2, y2);
+    }
+
+    // Add contributions from each corner to get the final noise value.
+    // The result is scaled to return values in the range [-1,1]
+    return 70.0 * (n0 + n1 + n2);
+}
+
 void PerlinNoise::GenerateHeightMap() {
-    unsigned int seed = 0x1A2B3C4D;
+    unsigned int seed = 0xAABBCCDD;
     std::vector p = generatePermutationVector(seed);
     // Parameters for fBM
-    int octaves = 5 + (rand() % 3); // Number of octaves with variability
-    double persistence = 0.5 + (rand() % 50) / 100.0; // Dynamic persistence
-    double lacunarity = 2.0 + (rand() % 20) / 10.0; // Dynamic lacunarity
-    double warpFactor = 0.05;
-    double inputScale = 0.004;
+    int octaves = 7 + (rand() % 3); // Number of octaves with variability
+    double persistence = 0.7 + (rand() % 50) / 100.0; // Dynamic persistence
+    double lacunarity = 2.5 + (rand() % 20) / 10.0; // Dynamic lacunarity
+    double warpFactor = 0.1;
+    double inputScale = 0.002;
 
     for (int z = 0; z < m_depth; z++) {
         for (int x = 0; x < m_width; x++) {
@@ -224,6 +305,7 @@ void PerlinNoise::GenerateHeightMap() {
                          noiseValue * 0.7; // Example of domain warping
             noiseValue = terrace(noiseValue,
                                  10);                                                           // Example of terracing
+//            double noiseValue = simplexNoise(x * 50.0, z * 50.0, p) / 50.0;
             m_data.push_back(noiseValue);
         }
     }

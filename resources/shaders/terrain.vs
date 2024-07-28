@@ -6,7 +6,6 @@ layout (location = 3) in vec2 aTexCoords;
 
 out vec3 FragPos;
 out vec3 Normal;
-out float Height;
 out vec2 TexCoords;
 out mat3 TBN;
 
@@ -17,18 +16,18 @@ uniform sampler2D dispMap;
 
 void main()
 {
-    Height = aPos.y;
-
     TexCoords = aTexCoords;
 
-    float displacement = texture(dispMap, aTexCoords).r * 0.05;
+    float displacement = texture(dispMap, aTexCoords).r * 0.04;
     vec3 displacedPos = aPos + aNormal * displacement;
 
-    vec3 bitangent = cross(aNormal, aTangent);
-    TBN = mat3(aTangent, bitangent, aNormal);
+    vec3 bitangent = normalize(cross(aNormal, aTangent));
+    vec3 tangent = normalize(aTangent);
+    vec3 normal = normalize(aNormal);
+    TBN = mat3(tangent, bitangent, normal);
 
     FragPos = vec3(model * vec4(displacedPos, 1.0)); // Use displacedPos here
-    Normal = mat3(transpose(inverse(model))) * aNormal;
+    Normal = normalize(mat3(transpose(inverse(model))) * aNormal);
 
     gl_Position = projection * view * model * vec4(displacedPos, 1.0);
 }

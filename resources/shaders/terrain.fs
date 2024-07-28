@@ -2,7 +2,6 @@
 
 in vec3 FragPos;
 in vec3 Normal;
-in float Height;
 in vec2 TexCoords;
 in mat3 TBN;
 
@@ -22,7 +21,7 @@ void main()
     vec3 normalTexture = texture(normalMap, TexCoords).rgb;
     float roughness = texture(roughMap, TexCoords).r;
 
-    normalTexture = normalTexture * 2.0 - 1.0; // Convert from [0, 1] to [-1, 1]
+    normalTexture = normalTexture * 2.0 - 1.0;
     vec3 normal = normalize(TBN * normalTexture);
 
     vec3 lightDir = normalize(lightPos - FragPos);
