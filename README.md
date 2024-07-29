@@ -16,7 +16,9 @@ To-do List
 * Make mountains look more realistic
 
 How to build (I think, I havent tested it)
+,,,
 mkdir build
 cd build
 cmake ..
 make
+,,,
