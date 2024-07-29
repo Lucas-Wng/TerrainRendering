@@ -26,6 +26,8 @@ add_executable(TerrainRendering src/main.cpp
         include/imgui/imgui_tables.cpp
         include/imgui/backends/imgui_impl_glfw.cpp
         include/imgui/backends/imgui_impl_opengl3.cpp
+        src/Skybox.cpp
+        src/Skybox.h
 )
 
 target_include_directories(TerrainRendering PRIVATE ${CMAKE_SOURCE_DIR}/include)

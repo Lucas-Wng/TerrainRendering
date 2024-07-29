@@ -11,6 +11,7 @@
 #include "camera.h"
 #include "shader.h"
 #include "terrain.h"
+#include "Skybox.h"
 #include <iostream>
 
 
@@ -24,7 +25,6 @@ public:
 
     void OnResize(GLFWwindow*, int, int);
     void OnMouseMove(GLFWwindow*, double, double);
-    void OnKeyPressed(GLFWwindow*, int, int, int, int);
 
     float m_deltaTime = 0.0f;
     float m_lastFrame = 0.0f;
@@ -33,13 +33,15 @@ public:
     float m_lastX;
     float m_lastY;
 
+    int m_keys[1024] = { false };
 
-    int m_keys[1024];
 private:
     GLFWwindow *m_window;
     Camera *m_camera;
     Shader *m_shader;
+    Shader *m_skyboxShader;
     Terrain *m_terrain;
+    Skybox *m_skybox;
 
     void CreateWindow();
     void CreateShaders();
@@ -53,6 +55,8 @@ private:
     void Render();
 
     void InitImGui();
+
+    void InitSkybox();
 
 };
 
