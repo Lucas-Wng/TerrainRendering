@@ -4,22 +4,20 @@
 
 #include "terrain.h"
 #include <iostream>
+#include <thread>
 
 Terrain::Terrain(int width, int depth, bool perlinNoise)
         : m_width(width), m_depth(depth), m_perlinNoise(perlinNoise) {
 
-    LoadTextures();
 }
 
-void Terrain::LoadTextures() {
-//    m_diffuseTexture = TextureLoader::LoadTexture("resources/textures/metal_grate_rusty/metal_grate_rusty_diff_4k.png",GL_TEXTURE0);
-//    m_displacementTexture = TextureLoader::LoadTexture("resources/textures/metal_grate_rusty/metal_grate_rusty_disp_4k.png", GL_TEXTURE1);
-//    m_normalTexture = TextureLoader::LoadTexture("resources/textures/metal_grate_rusty/metal_grate_rusty_nor_gl_4k.png", GL_TEXTURE2);
-//    m_roughTexture = TextureLoader::LoadTexture("resources/textures/metal_grate_rusty/metal_grate_rusty_rough_4k.png", GL_TEXTURE3);
-    m_diffuseTexture = TextureLoader::LoadTexture("resources/textures/rock_face/rock_face_03_diff_4k.jpg", GL_TEXTURE0);
-    m_displacementTexture = TextureLoader::LoadTexture("resources/textures/rock_face/rock_face_03_disp_4k.png", GL_TEXTURE1);
-    m_normalTexture = TextureLoader::LoadTexture("resources/textures/rock_face/rock_face_03_nor_gl_4k.png", GL_TEXTURE2);
-    m_roughTexture = TextureLoader::LoadTexture("resources/textures/rock_face/rock_face_03_rough_4k.png", GL_TEXTURE3);
+Terrain::Terrain(int x, int z, int chunkSize, float terrainScale) :
+    chunkX(x),
+    chunkZ(z),
+    m_width(chunkSize),
+    m_depth(chunkSize),
+    m_terrainScale(terrainScale){
+    m_perlinNoise = true;
 }
 
 void Terrain::Generate() {
@@ -58,8 +56,7 @@ void Terrain::PopulateBuffer() {
 
     std::vector<unsigned int> indices;
     InitIndices(indices);
-    ComputeNormals(vertices, indices);
-    ComputeTangents(vertices, indices);
+    ComputeNormalsAndTangents(vertices, indices);
 
     UploadBufferData(m_VBO, vertices.data(), sizeof(Vertex) * vertices.size());
     UploadBufferData(m_EBO, indices.data(), sizeof(unsigned int) * indices.size());
@@ -72,14 +69,32 @@ void Terrain::UploadBufferData(GLuint buffer, const T* data, GLsizeiptr size) {
 }
 
 void Terrain::InitVertices(std::vector<Vertex>& vertices) {
-    float scale = 100.0f;
-    for (int z = 0, index = 0; z < m_depth; ++z) {
-        for (int x = 0; x < m_width; ++x, ++index) {
-            double height = m_heightmap[index];
-            float u = static_cast<float>(x) / m_width * scale;
-            float v = static_cast<float>(z) / m_depth * scale;
-            vertices[index].InitVertex(x / 50.0, height * 6.0, z / 50.0, u, v);
+    float texScale = 100.0f;
+    auto initVertexRange = [&](int start, int end) {
+        for (int z = start; z < end; ++z) {
+            for (int x = 0; x < m_width; ++x) {
+                int index = z * m_width + x;
+                float u = static_cast<float>(x) / m_width * texScale;
+                float v = static_cast<float>(z) / m_depth * texScale;
+                float worldX = (chunkX * (m_width - 1) + x) / m_terrainScale;
+                float worldZ = (chunkZ * (m_depth - 1) + z) / m_terrainScale;
+                float y = m_perlin.octave2D_01(worldX, worldZ, 6);
+                vertices[index].InitVertex(worldX, y * 2, worldZ, u, v);
+            }
         }
+    };
+
+    std::vector<std::thread> threads;
+    unsigned int numThreads = std::thread::hardware_concurrency();
+    int chunkSize = m_depth / numThreads;
+    for (int i = 0; i < numThreads; ++i) {
+        int start = i * chunkSize;
+        int end = (i == numThreads - 1) ? m_depth : start + chunkSize;
+        threads.emplace_back(initVertexRange, start, end);
+    }
+
+    for (auto& thread : threads) {
+        thread.join();
     }
 }
 
@@ -97,11 +112,7 @@ void Terrain::Render() {
 }
 
 void Terrain::InitHeightMap() {
-    if (m_perlinNoise) {
-        PerlinNoise perlinNoise(m_width, m_depth);
-        perlinNoise.GenerateHeightMap();
-        m_heightmap = perlinNoise.GetHeightMap();
-    } else {
+    if (!m_perlinNoise) {
         HeightMap heightMap;
         heightMap.LoadFileHeightMap("resources/heightmaps/iceland_heightmap.png");
         m_width = heightMap.getMWidth();
@@ -128,9 +139,9 @@ void Terrain::InitIndices(std::vector<unsigned int>& indices) {
     }
 }
 
-void Terrain::ComputeNormals(std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices) {
-    // Initialize normals to zero
+void Terrain::ComputeNormalsAndTangents(std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices) {
     std::vector<glm::vec3> vertexNormals(vertices.size(), glm::vec3(0.0f));
+    std::vector<glm::vec3> vertexTangents(vertices.size(), glm::vec3(0.0f));
 
     // Iterate over each triangle
     for (size_t i = 0; i < indices.size(); i += 3) {
@@ -145,29 +156,11 @@ void Terrain::ComputeNormals(std::vector<Vertex>& vertices, const std::vector<un
         glm::vec3 edge1 = v1.Pos - v0.Pos;
         glm::vec3 edge2 = v2.Pos - v0.Pos;
 
-        // Compute face normal
         glm::vec3 faceNormal = glm::normalize(glm::cross(edge1, edge2));
 
-        // Accumulate the face normal to the vertices involved in the face
         vertexNormals[i0] += faceNormal;
         vertexNormals[i1] += faceNormal;
         vertexNormals[i2] += faceNormal;
-    }
-
-    // Normalize the accumulated vertex normals
-    for (size_t i = 0; i < vertices.size(); ++i) {
-        vertices[i].Normal = glm::normalize(vertexNormals[i]);
-    }
-}
-
-void Terrain::ComputeTangents(std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices) {
-    for (size_t i = 0; i < indices.size(); i += 3) {
-        Vertex& v0 = vertices[indices[i]];
-        Vertex& v1 = vertices[indices[i + 1]];
-        Vertex& v2 = vertices[indices[i + 2]];
-
-        glm::vec3 edge1 = v1.Pos - v0.Pos;
-        glm::vec3 edge2 = v2.Pos - v0.Pos;
 
         glm::vec2 deltaUV1 = v1.TexCoords - v0.TexCoords;
         glm::vec2 deltaUV2 = v2.TexCoords - v0.TexCoords;
@@ -179,14 +172,14 @@ void Terrain::ComputeTangents(std::vector<Vertex>& vertices, const std::vector<u
         tangent.y = f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y);
         tangent.z = f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z);
 
-        v0.Tangent += tangent;
-        v1.Tangent += tangent;
-        v2.Tangent += tangent;
+        vertexTangents[i0] += tangent;
+        vertexTangents[i1] += tangent;
+        vertexTangents[i2] += tangent;
     }
 
-    // Normalize the tangents
-    for (auto& vertex : vertices) {
-        vertex.Tangent = glm::normalize(vertex.Tangent);
+    for (size_t i = 0; i < vertices.size(); ++i) {
+        vertices[i].Normal = glm::normalize(vertexNormals[i]);
+        vertices[i].Tangent = glm::normalize(vertexTangents[i]);
     }
 }
 
@@ -195,3 +188,4 @@ void Terrain::UnbindBuffers() {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
+

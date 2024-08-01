@@ -13,6 +13,7 @@
 #include "terrain.h"
 #include "Skybox.h"
 #include <iostream>
+#include "InfiniteTerrain.h"
 
 
 class TerrainDemo {
@@ -40,7 +41,7 @@ private:
     Camera *m_camera;
     Shader *m_shader;
     Shader *m_skyboxShader;
-    Terrain *m_terrain;
+    InfiniteTerrain *m_terrain;
     Skybox *m_skybox;
 
     void CreateWindow();

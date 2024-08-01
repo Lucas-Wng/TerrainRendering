@@ -11,14 +11,16 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <vector>
-#include "PerlinNoise.h"
-#include "TextureLoader.h"
+//#include "PerlinNoise.h"
+#include <unordered_map>
+#include <utility>
+#include "PerlinNoise.hpp"
 
 
 class Terrain {
 public:
     Terrain(int width, int depth, bool perlinNoise = false);
-    ~Terrain();
+    Terrain(int x, int z, int chunkSize, float terrainScale);
 
     void Render();
     void Generate();
@@ -31,28 +33,28 @@ private:
         void InitVertex(double x, double y, double z, double u, double v);
     };
 
+    int chunkX;
+    int chunkZ;
+
+    const siv::PerlinNoise::seed_type seed = 123456u;
+    const siv::PerlinNoise m_perlin{ seed };
+
     bool m_perlinNoise = false;
     int m_width;
     int m_depth;
+    float m_terrainScale;
     std::vector<double> m_heightmap;
     std::vector<glm::vec3> m_normals;
     unsigned int m_VAO = 0;
     unsigned int m_VBO = 0;
     unsigned int m_EBO = 0;
 
-    unsigned int m_diffuseTexture;
-    unsigned int m_displacementTexture;
-    unsigned int m_normalTexture;
-    unsigned int m_roughTexture;
-
     void PopulateBuffer();
     void InitVertices(std::vector<Vertex>& Vertices);
     void InitGLStates();
     void InitHeightMap();
     void InitIndices(std::vector<unsigned int>& Indices);
-    void ComputeNormals(std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices);
-    void ComputeTangents(std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices);
-    void LoadTextures();
+    void ComputeNormalsAndTangents(std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices);
     void UnbindBuffers();
     void SetupVertexAttribs(GLuint buffer, GLuint index, GLint size, GLenum type, GLsizei stride, const void* pointer);
     template <typename T>

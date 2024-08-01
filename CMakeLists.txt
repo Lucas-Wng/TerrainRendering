@@ -28,6 +28,9 @@ add_executable(TerrainRendering src/main.cpp
         include/imgui/backends/imgui_impl_opengl3.cpp
         src/Skybox.cpp
         src/Skybox.h
+        src/InfiniteTerrain.cpp
+        src/InfiniteTerrain.h
+        src/PerlinNoise.hpp
 )
 
 target_include_directories(TerrainRendering PRIVATE ${CMAKE_SOURCE_DIR}/include)

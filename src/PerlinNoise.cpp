@@ -310,11 +310,11 @@ void PerlinNoise::GenerateHeightMap() {
         }
     }
 
-// Apply hydraulic erosion to the heightmap
-    hydraulicErosion(m_data, m_width, m_depth, 1000 );
-
-// Apply Gaussian blur to smooth the heightmap
-    applyGaussianBlur(m_data, m_width, m_depth, 2.0);
+//// Apply hydraulic erosion to the heightmap
+//    hydraulicErosion(m_data, m_width, m_depth, 1000 );
+//
+//// Apply Gaussian blur to smooth the heightmap
+//    applyGaussianBlur(m_data, m_width, m_depth, 2.0);
 }
 
 std::vector<double> PerlinNoise::GetHeightMap() {

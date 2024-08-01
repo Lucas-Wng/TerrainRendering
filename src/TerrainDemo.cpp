@@ -16,9 +16,6 @@ static void KeyPressedCallback(GLFWwindow*, int, int, int, int);
 const int SCR_WIDTH = 1920;
 const int SCR_HEIGHT = 1080;
 
-const int world_width = 256;
-const int world_depth = 256;
-
 TerrainDemo::TerrainDemo() {
     Init();
     Run();
@@ -77,8 +74,7 @@ void TerrainDemo::InitImGui() {
 }
 
 void TerrainDemo::InitTerrain() {
-    m_terrain = new Terrain(world_width, world_depth, true);
-    m_terrain->Generate();
+    m_terrain = new InfiniteTerrain(128, 15.0f);
 }
 
 void TerrainDemo::SetCallbacks() {
@@ -95,7 +91,7 @@ void TerrainDemo::CreateShaders() {
 }
 
 void TerrainDemo::CreateCamera() {
-    m_camera = new Camera(glm::vec3(2.0f, 4.0f, 2.0f));
+    m_camera = new Camera(glm::vec3(0.0f, 1.0f, 0.0f));
 }
 
 void TerrainDemo::Run() {
@@ -130,10 +126,10 @@ void TerrainDemo::Render() {
     m_shader->setMat4("view", view);
     glm::mat4 model = glm::mat4(1.0f);
     m_shader->setMat4("model", model);
-    m_shader->setVec3("lightPos", glm::vec3(sin(glfwGetTime() * 0.1) * world_width * 2, 5.0f, cos(glfwGetTime() * 0.1   ) *
-    world_width * 2));
 
-    m_terrain->Render();
+    m_terrain->updateChunks(m_camera->Position.x, m_camera->Position.z);
+    m_terrain->renderTerrain();
+    m_terrain->cleanupChunks(m_camera->Position.x, m_camera->Position.z);
 
     m_skyboxShader->use();
     view = glm::mat4(glm::mat3(m_camera->GetViewMatrix())); // remove translation from the view matrix
@@ -220,9 +216,8 @@ void TerrainDemo::OnMouseMove(GLFWwindow* window, double x, double y) {
 
 void TerrainDemo::SetShaderUniforms() {
     m_shader->use();
-    m_shader->setVec3("lightPos", glm::vec3(0.0f, 0.0f, 0.0f));
-    m_shader->setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
-    m_shader->setVec3("objectColor", glm::vec3(0.2f, 0.2f, 0.2f));
+    m_shader->setVec3("lightPos", glm::vec3(10000.0f, 10.0f, 0.0f));
+    m_shader->setVec3("lightColor", glm::vec3(0.99f, 0.72f, 0.60f));
 
     m_shader->setInt("diffuseMap", 0);
     m_shader->setInt("dispMap", 1);
