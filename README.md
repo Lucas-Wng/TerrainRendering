@@ -1,7 +1,7 @@
 Procedural terrain generation and rendering using OpenGL and GLSL
 
 Features so far:
-* (WIP) Infinite procedural terrain generation with perlin noise (ridged), hydraulic erosion, terracing, fbm, gaussian blur
+* Infinite procedural terrain generation with perlin noise (ridged), hydraulic erosion, terracing, fbm, gaussian blur
 * 3D Camera movement
 * ImGui integration
 * Shaders for lighting with Phong shading
