@@ -74,7 +74,7 @@ void TerrainDemo::InitImGui() {
 }
 
 void TerrainDemo::InitTerrain() {
-    m_terrain = new InfiniteTerrain(128, 15.0f);
+    m_terrain = new InfiniteTerrain(256, 20.0f);
 }
 
 void TerrainDemo::SetCallbacks() {
@@ -217,7 +217,7 @@ void TerrainDemo::OnMouseMove(GLFWwindow* window, double x, double y) {
 void TerrainDemo::SetShaderUniforms() {
     m_shader->use();
     m_shader->setVec3("lightPos", glm::vec3(10000.0f, 10.0f, 0.0f));
-    m_shader->setVec3("lightColor", glm::vec3(0.99f, 0.72f, 0.60f));
+    m_shader->setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
 
     m_shader->setInt("diffuseMap", 0);
     m_shader->setInt("dispMap", 1);

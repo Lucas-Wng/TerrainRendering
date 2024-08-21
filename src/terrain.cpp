@@ -78,8 +78,8 @@ void Terrain::InitVertices(std::vector<Vertex>& vertices) {
                 float v = static_cast<float>(z) / m_depth * texScale;
                 float worldX = (chunkX * (m_width - 1) + x) / m_terrainScale;
                 float worldZ = (chunkZ * (m_depth - 1) + z) / m_terrainScale;
-                float y = m_perlin.octave2D_01(worldX, worldZ, 6);
-                vertices[index].InitVertex(worldX, y * 2, worldZ, u, v);
+                float y = m_perlin.octave2D_01(worldX * 0.1, worldZ * 0.1, 10);
+                vertices[index].InitVertex(worldX, y * 20 - 20, worldZ, u, v);
             }
         }
     };
