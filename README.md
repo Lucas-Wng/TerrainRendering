@@ -1,4 +1,4 @@
-# Procedural terrain generation and rendering using OpenGL and GLSL
+# Procedural Terrain Generation and Rendering Using OpenGL and GLSL
 
 ![Image1](images/image1.png)
 ![Image2](images/image2.png)
