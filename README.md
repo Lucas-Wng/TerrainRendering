@@ -10,7 +10,7 @@
 * Shaders for lighting with Phong shading
 * Texturing with diffuse, diplacement, normal, and rough texture maps
 * Skybox
-* Can important own texture maps
+* Can import own texture maps
 
 ## To-do List 
 * Procedural grass generation
